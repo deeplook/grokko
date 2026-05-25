@@ -7,6 +7,18 @@ for export links, downloading the ZIP, and inspecting export contents.
 
 Requires Python `3.10+` and [uv](https://docs.astral.sh/uv/).
 
+The easiest way is to install directly from PyPI:
+
+```bash
+uv tool install grokko
+grokko setup
+```
+
+`grokko setup` installs the Playwright browser dependencies, skipping the
+download if a compatible version is already present.
+
+To install from source instead:
+
 ```bash
 git clone https://github.com/deeplook/grokko
 cd grokko
@@ -14,10 +26,7 @@ uv tool install .
 grokko setup
 ```
 
-`grokko setup` installs the Playwright browser dependencies, skipping the
-download if a compatible version is already present.
-
-To install into a local virtual environment instead:
+To install into a local virtual environment:
 
 ```bash
 git clone https://github.com/deeplook/grokko
@@ -35,20 +44,20 @@ startup — no configuration needed beyond installation.
 
 ### Installing plugins
 
-If you installed `grokko` as a uv tool, add a plugin by reinstalling with
-`--with` (works for both a fresh install and an existing one):
+If you installed `grokko` as a uv tool, add a plugin with `--with`
+(works for both a fresh install and an existing one):
 
 ```bash
-uv tool install --reinstall --with grokko-plugin .
+uv tool install --reinstall grokko --with grokko-plugin
 ```
 
 For a local plugin directory, pass the path instead of a package name:
 
 ```bash
-uv tool install --reinstall --with ../grokko-plugin .
+uv tool install --reinstall grokko --with ../grokko-plugin
 ```
 
-Or use the Makefile shorthand from the `grokko` directory:
+Or use the Makefile shorthand from the `grokko` source directory:
 
 ```bash
 make install-tool PLUGINS="grokko-plugin"

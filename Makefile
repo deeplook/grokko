@@ -26,10 +26,10 @@ check: lint typecheck test
 build:
 	uv build
 
-publish:
+publish: build
 	uv publish --token $${PYPI_TOKEN}
 
-publish-test:
+publish-test: build
 	uv publish --index testpypi --token $${TEST_PYPI_TOKEN}
 
 install-tool:

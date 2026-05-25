@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+.eggs/
+
+# Distribution
+dist/
+build/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Tools
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Misc
+.DS_Store
+*.swp
+.env
+
+# Local files (not versioned)
+docs/
+overview.*
+.playwright-mcp/
+output/
+NOTES.md
+TASKS.md
+exported/
+memory/
+scripts/

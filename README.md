@@ -1,5 +1,12 @@
 # Grokko
 
+[![CI](https://github.com/deeplook/grokko/actions/workflows/ci.yml/badge.svg)](https://github.com/deeplook/grokko/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/grokko.svg)](https://pypi.org/project/grokko/)
+[![Python](https://img.shields.io/pypi/pyversions/grokko.svg)](https://pypi.org/project/grokko/)
+[![Downloads](https://img.shields.io/pypi/dm/grokko.svg)](https://pepy.tech/project/grokko)
+[![License](https://img.shields.io/pypi/l/grokko.svg)](https://pypi.org/project/grokko/)
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?style=flat&logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/deeplook)
+
 CLI for capturing Grok session cookies, triggering account exports, polling email
 for export links, downloading the ZIP, and inspecting export contents.
 

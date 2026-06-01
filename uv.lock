@@ -275,6 +275,7 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "browser-cookie3" },
+    { name = "click" },
     { name = "playwright" },
     { name = "playwright-stealth" },
     { name = "python-dotenv" },
@@ -293,6 +294,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "browser-cookie3", specifier = ">=0.20.0" },
+    { name = "click", specifier = ">=8.3.3" },
     { name = "playwright", specifier = ">=1.58.0" },
     { name = "playwright-stealth", specifier = ">=1.0.6" },
     { name = "python-dotenv", specifier = ">=1.2.2" },

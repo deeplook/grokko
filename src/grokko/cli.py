@@ -11,7 +11,6 @@ from importlib.metadata import version as package_version
 from pathlib import Path
 from typing import Annotated, Any, cast
 
-import click
 import typer
 from dotenv import find_dotenv, load_dotenv
 
@@ -698,6 +697,7 @@ def search(
 
 @app.command("extract")
 def extract(
+    ctx: typer.Context,
     zip: Annotated[
         Path | None, typer.Argument(help="Path to Grok export ZIP file")
     ] = None,
@@ -726,7 +726,7 @@ def extract(
 ) -> None:
     """Convert a Grok export ZIP to Obsidian Markdown notes."""
     if zip is None and output_dir is None:
-        typer.echo(click.get_current_context().get_help())
+        typer.echo(ctx.get_help())
         raise typer.Exit(0)
     if zip is None:
         typer.echo("error: missing argument 'ZIP'", err=True)
@@ -811,10 +811,10 @@ add_overview_command(app)
 
 def main() -> None:
     """Run the CLI."""
-    import click as _click
+    import typer.core as _typer_core
 
     _order = ["setup", "session", "chat", "search", "export", "extract", "overview"]
-    click_group = cast(_click.Group, typer.main.get_command(app))
+    click_group = cast(_typer_core.TyperGroup, typer.main.get_command(app))
     _old = dict(click_group.commands)
     click_group.commands = {k: _old[k] for k in _order if k in _old}
     click_group.commands.update(

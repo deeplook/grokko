@@ -12,8 +12,7 @@ from unittest.mock import MagicMock, patch
 import click
 import pytest
 import typer.main as typer_main
-from click.testing import Result
-from typer.testing import CliRunner
+from typer.testing import CliRunner, Result
 
 from grokko._http import GrokApiError
 from grokko.cli import (

@@ -70,6 +70,54 @@ def test_get_conversation_by_index_and_range_paginate() -> None:
     ]
 
 
+def test_search_conversations_attaches_highlights() -> None:
+    client = FakeConversationClient()
+    client.get_responses = [
+        {
+            "conversations": [
+                {"conversationId": "c1", "title": "Python tips"},
+                {"conversationId": "c2", "title": "No highlight here"},
+            ],
+            "textSearchMatches": [
+                {
+                    "conversation": {"conversationId": "c1"},
+                    "matchType": "MATCH_MESSAGE",
+                    "highlight": "some python snippet",
+                }
+            ],
+        }
+    ]
+
+    results = client.search_conversations("python", page_size=10)
+
+    assert client.get_calls == [
+        "/rest/app-chat/conversations?pageSize=10&searchQuery=python"
+    ]
+    assert results == [
+        {
+            "conversation": {"conversationId": "c1", "title": "Python tips"},
+            "highlight": "some python snippet",
+            "matchType": "MATCH_MESSAGE",
+        },
+        {
+            "conversation": {"conversationId": "c2", "title": "No highlight here"},
+            "highlight": None,
+            "matchType": None,
+        },
+    ]
+
+
+def test_search_conversations_encodes_query() -> None:
+    client = FakeConversationClient()
+    client.get_responses = [{"conversations": []}]
+
+    client.search_conversations("py & spaces")
+
+    assert client.get_calls == [
+        "/rest/app-chat/conversations?pageSize=60&searchQuery=py%20%26%20spaces"
+    ]
+
+
 def test_list_conversation_range_validates_bounds() -> None:
     client = FakeConversationClient()
 

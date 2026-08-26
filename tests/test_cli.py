@@ -12,8 +12,7 @@ from unittest.mock import MagicMock, patch
 import click
 import pytest
 import typer.main as typer_main
-from click.testing import Result
-from typer.testing import CliRunner
+from typer.testing import CliRunner, Result
 
 from grokko._http import GrokApiError
 from grokko.cli import (
@@ -65,7 +64,7 @@ def _invoke_chat_with_id(*extra_args: str) -> Result:
 
 def test_main_reorders_commands() -> None:
     """main() must present commands in the canonical order."""
-    expected = ["setup", "session", "chat", "export", "extract", "overview"]
+    expected = ["setup", "session", "chat", "search", "export", "extract", "overview"]
     grp = cast(click.Group, typer_main.get_command(app))
     old = dict(grp.commands)
     grp.commands = {k: old[k] for k in expected if k in old}
@@ -97,6 +96,65 @@ def test_app_has_chat_command() -> None:
     assert result.exit_code == 0
     assert "--messages" in result.output
     assert "--sources" in result.output
+
+
+def test_app_has_search_command() -> None:
+    """Test that search command exists."""
+    result = runner.invoke(app, ["search", "-h"])
+    assert result.exit_code == 0
+    assert "--json" in result.output
+
+
+def test_search_prints_results_with_highlight() -> None:
+    auth = patch("grokko.cli._require_auth", return_value={"cookies": []})
+    client_cls = patch("grokko.cli.GrokConversationClient")
+    with auth, client_cls as MockClient:
+        MockClient.return_value.search_conversations.return_value = [
+            {
+                "conversation": FAKE_CONVO,
+                "highlight": "matched snippet",
+                "matchType": "MATCH_MESSAGE",
+            }
+        ]
+        result = runner.invoke(app, ["search", "weather"])
+    assert result.exit_code == 0
+    assert "Test Convo" in result.output
+    assert "https://grok.com/c/abc123" in result.output
+    assert "matched snippet" in result.output
+    MockClient.return_value.search_conversations.assert_called_once_with(
+        "weather", page_size=20
+    )
+
+
+def test_search_json_output() -> None:
+    auth = patch("grokko.cli._require_auth", return_value={"cookies": []})
+    client_cls = patch("grokko.cli.GrokConversationClient")
+    payload = [{"conversation": FAKE_CONVO, "highlight": None, "matchType": None}]
+    with auth, client_cls as MockClient:
+        MockClient.return_value.search_conversations.return_value = payload
+        result = runner.invoke(app, ["search", "weather", "--json"])
+    assert result.exit_code == 0
+    assert json.loads(result.output) == payload
+
+
+def test_search_no_results_exits_nonzero() -> None:
+    auth = patch("grokko.cli._require_auth", return_value={"cookies": []})
+    client_cls = patch("grokko.cli.GrokConversationClient")
+    with auth, client_cls as MockClient:
+        MockClient.return_value.search_conversations.return_value = []
+        result = runner.invoke(app, ["search", "nope"])
+    assert result.exit_code == 1
+    assert "No conversations found" in result.output
+
+
+def test_search_api_error_exits_nonzero() -> None:
+    auth = patch("grokko.cli._require_auth", return_value={"cookies": []})
+    client_cls = patch("grokko.cli.GrokConversationClient")
+    with auth, client_cls as MockClient:
+        MockClient.return_value.search_conversations.side_effect = GrokApiError("boom")
+        result = runner.invoke(app, ["search", "weather"])
+    assert result.exit_code == 1
+    assert "boom" in result.output
 
 
 def test_app_has_extract_command() -> None:

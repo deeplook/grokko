@@ -11,7 +11,6 @@ from importlib.metadata import version as package_version
 from pathlib import Path
 from typing import Annotated, Any, cast
 
-import click
 import typer
 from dotenv import find_dotenv, load_dotenv
 
@@ -661,8 +660,44 @@ def chat(
 app.add_typer(export_app, name="export")
 
 
+@app.command("search")
+def search(
+    query: Annotated[str, typer.Argument(help="Text to search for")],
+    limit: Annotated[int, typer.Option("-n", help="Maximum number of results")] = 20,
+    json: Annotated[bool, typer.Option(help="Output raw JSON")] = False,
+) -> None:
+    """Search Grok conversation titles and messages, printing matching URLs."""
+    config = _get_config()
+    state = _require_auth(config)
+    client = GrokConversationClient(state.get("cookies", []), config.user_agent)
+
+    try:
+        results = client.search_conversations(query, page_size=limit)
+    except GrokApiError as exc:
+        typer.echo(f"error: {exc}", err=True)
+        raise typer.Exit(1) from None
+
+    if not results:
+        typer.echo(f"No conversations found matching {query!r}.", err=True)
+        raise typer.Exit(1)
+
+    if json:
+        typer.echo(_json.dumps(results, indent=2))
+        return
+
+    for i, result in enumerate(results):
+        convo = result["conversation"]
+        convo_id = _conversation_id(convo)
+        _print_convo_summary(convo, convo_id)
+        if result.get("highlight"):
+            typer.echo(f"Match:    {result['highlight']}")
+        if i != len(results) - 1:
+            typer.echo()
+
+
 @app.command("extract")
 def extract(
+    ctx: typer.Context,
     zip: Annotated[
         Path | None, typer.Argument(help="Path to Grok export ZIP file")
     ] = None,
@@ -691,7 +726,7 @@ def extract(
 ) -> None:
     """Convert a Grok export ZIP to Obsidian Markdown notes."""
     if zip is None and output_dir is None:
-        typer.echo(click.get_current_context().get_help())
+        typer.echo(ctx.get_help())
         raise typer.Exit(0)
     if zip is None:
         typer.echo("error: missing argument 'ZIP'", err=True)
@@ -776,10 +811,10 @@ add_overview_command(app)
 
 def main() -> None:
     """Run the CLI."""
-    import click as _click
+    import typer.core as _typer_core
 
-    _order = ["setup", "session", "chat", "export", "extract", "overview"]
-    click_group = cast(_click.Group, typer.main.get_command(app))
+    _order = ["setup", "session", "chat", "search", "export", "extract", "overview"]
+    click_group = cast(_typer_core.TyperGroup, typer.main.get_command(app))
     _old = dict(click_group.commands)
     click_group.commands = {k: _old[k] for k in _order if k in _old}
     click_group.commands.update(

@@ -22,8 +22,8 @@ from __future__ import annotations
 from importlib import metadata
 from typing import Any
 
-import click
 import typer
+import typer.core
 
 
 def add_overview_command(
@@ -57,7 +57,7 @@ def _print_overview(app: typer.Typer) -> None:
     commands = getattr(click_group, "commands", {}) or {}
     global_params = getattr(click_group, "params", []) or []
     global_option_count = sum(
-        isinstance(param, click.Option) for param in global_params
+        isinstance(param, typer.core.TyperOption) for param in global_params
     )
 
     typer.echo("\nApplication")
@@ -82,7 +82,7 @@ def _print_overview(app: typer.Typer) -> None:
 
 
 def _print_commands(
-    group: click.Command,
+    group: Any,
     indent: int = 1,
     max_depth: int = 10,
     seen: set[int] | None = None,
@@ -115,7 +115,7 @@ def _print_commands(
         cmd_help = getattr(cmd, "help", None) or "(no description)"
 
         # Check if this command is itself a group (nested sub-application)
-        is_group = isinstance(cmd, click.Group)
+        is_group = isinstance(cmd, typer.core.TyperGroup)
         group_marker = " [group]" if is_group else ""
 
         typer.echo(f"\n{base_indent}{cmd_name}{group_marker}")
@@ -124,7 +124,9 @@ def _print_commands(
         # Print group-level options if this is a nested group
         if is_group:
             group_params = getattr(cmd, "params", []) or []
-            group_opts = [p for p in group_params if isinstance(p, click.Option)]
+            group_opts = [
+                p for p in group_params if isinstance(p, typer.core.TyperOption)
+            ]
             if group_opts:
                 typer.echo(f"{base_indent}  Group Options:")
                 for opt in group_opts:
@@ -140,8 +142,8 @@ def _print_commands(
                 typer.echo(f"{base_indent}  Parameters : (none)")
                 continue
 
-            args = [p for p in params if isinstance(p, click.Argument)]
-            opts = [p for p in params if isinstance(p, click.Option)]
+            args = [p for p in params if isinstance(p, typer.core.TyperArgument)]
+            opts = [p for p in params if isinstance(p, typer.core.TyperOption)]
 
             if args:
                 typer.echo(f"{base_indent}  Arguments:")
@@ -158,7 +160,7 @@ def _print_param(param: Any, is_global: bool = False, indent: int = 3) -> None:
     """Helper to format and display a Click Parameter object."""
     base_indent = "  " * indent
     prefix = "Global " if is_global else ""
-    if isinstance(param, click.Option):
+    if isinstance(param, typer.core.TyperOption):
         names = (
             ", ".join(param.opts)
             if getattr(param, "opts", None)
@@ -166,7 +168,7 @@ def _print_param(param: Any, is_global: bool = False, indent: int = 3) -> None:
         )
         help_text = getattr(param, "help", None)
     else:
-        # click.Argument has no .opts and no .help
+        # typer.core.TyperArgument has no .opts and no .help
         names = param.name or "?"
         help_text = None
     try:
@@ -188,7 +190,7 @@ def _print_param(param: Any, is_global: bool = False, indent: int = 3) -> None:
 
 
 def _resolve_app_metadata(
-    app: typer.Typer, click_group: click.Command
+    app: typer.Typer, click_group: Any
 ) -> tuple[str, str, str | None]:
     """Return a best-effort (name, description, version) tuple for the app."""
     app_name = _clean_text(getattr(click_group, "name", None))

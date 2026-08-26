@@ -143,6 +143,10 @@ Search conversation titles and messages, printing matching URLs:
 grokko search "python decorators"
 ```
 
+Search is case-insensitive and whole-word (no substring matches), and multiple
+words are OR'd together — `grokko search "python docker"` matches conversations
+containing *either* word, not both.
+
 Inspect the most recently downloaded ZIP:
 
 ```bash

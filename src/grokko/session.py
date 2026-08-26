@@ -21,6 +21,7 @@ from playwright.sync_api import (
     Error as PlaywrightError,
 )
 
+from grokko._paths import display_path
 from grokko.config import GrokExportConfig, GrokSessionConfig, SessionCheck
 
 # Locale variants for consent/onboarding popup buttons across browser locales.
@@ -119,13 +120,13 @@ class GrokSessionManager:
         """Print a human-readable report for the stored browser cookies."""
         state_path = path or self.config.state_file
         if not state_path.exists():
-            self.log(f"No state file found at {state_path}")
+            self.log(f"No state file found at {display_path(state_path)}")
             return
 
         try:
             data = json.loads(state_path.read_text(encoding="utf-8"))
         except Exception as exc:
-            self.log(f"Could not parse {state_path}: {exc}")
+            self.log(f"Could not parse {display_path(state_path)}: {exc}")
             return
 
         cookies = data.get("cookies", [])
@@ -187,7 +188,7 @@ class GrokSessionManager:
                 ) from exc
             raise
         if self.config.state_file.exists():
-            self.log(f"Loading session from {self.config.state_file}")
+            self.log(f"Loading session from {display_path(self.config.state_file)}")
             state = json.loads(self.config.state_file.read_text(encoding="utf-8"))
             cookies = state.get("cookies", [])
             if cookies:
@@ -309,7 +310,10 @@ class GrokSessionManager:
         self.config.state_file.write_text(
             json.dumps(state, indent=2, ensure_ascii=False), encoding="utf-8"
         )
-        self.log(f"Saved {len(playwright_cookies)} cookies to {self.config.state_file}")
+        self.log(
+            f"Saved {len(playwright_cookies)} cookies to "
+            f"{display_path(self.config.state_file)}"
+        )
         return True
 
     def inspect_zip(self, zip_path: Path) -> bool:

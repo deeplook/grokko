@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from typing import Any
+from urllib.parse import quote
 
 from grokko._http import GrokApiError, GrokRestClient, extract_list
 
@@ -55,6 +56,38 @@ class GrokConversationClient(GrokRestClient):
             token = resp.get("nextPageToken") if isinstance(resp, dict) else None
             if not token:
                 return selected
+
+    def search_conversations(
+        self, query: str, page_size: int = 60
+    ) -> list[dict[str, Any]]:
+        """Search conversation titles and message content for `query`.
+
+        Returns one entry per matching conversation, each with an optional
+        `highlight` snippet pulled from the matching message when the API
+        provides one (title-only matches have no highlight).
+        """
+        resp = self._get(
+            f"/rest/app-chat/conversations?pageSize={page_size}"
+            f"&searchQuery={quote(query)}"
+        )
+        conversations = extract_list(resp, "conversations")
+        matches = resp.get("textSearchMatches", []) if isinstance(resp, dict) else []
+        highlights = {
+            m["conversation"]["conversationId"]: m
+            for m in matches
+            if isinstance(m, dict) and m.get("conversation", {}).get("conversationId")
+        }
+        results = []
+        for convo in conversations:
+            match = highlights.get(convo.get("conversationId"))
+            results.append(
+                {
+                    "conversation": convo,
+                    "highlight": match.get("highlight") if match else None,
+                    "matchType": match.get("matchType") if match else None,
+                }
+            )
+        return results
 
     def get_conversation_by_id(self, conversation_id: str) -> dict[str, Any]:
         """Fetch one conversation metadata object by conversation ID."""

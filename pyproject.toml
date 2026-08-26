@@ -16,6 +16,7 @@ classifiers = [
 ]
 dependencies = [
     "browser-cookie3>=0.20.0",
+    "click>=8.3.3",
     "playwright>=1.58.0",
     "playwright-stealth>=1.0.6",
     "python-dotenv>=1.2.2",

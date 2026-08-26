@@ -137,6 +137,12 @@ Combine with `--messages` to download attachments and print the transcript in on
 grokko chat --id <conversation-id> --attachments --messages
 ```
 
+Search conversation titles and messages, printing matching URLs:
+
+```bash
+grokko search "python decorators"
+```
+
 Inspect the most recently downloaded ZIP:
 
 ```bash

@@ -229,7 +229,7 @@ def test_extract_no_args_shows_help() -> None:
     assert result.exit_code == 0
     assert "Usage:" in result.output
     assert "ZIP" in result.output
-    assert "OUTPUT_DIR" in result.output
+    assert "output_dir" in result.output
 
 
 def test_gen_image_is_not_built_in() -> None:
